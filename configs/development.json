@@ -1,0 +1,101 @@
+{
+    "logs": {
+        "path": "../logs",
+        "config": [
+            {
+                "type": "http",
+                "level": "debug",
+                "jsonify": true,
+                "showLevel": true,
+                "showTimestamp": true
+            },
+            {
+                "type": "database",
+                "level": "debug",
+                "showLevel": true,
+                "jsonify": true,
+                "showTimestamp": true
+            },
+            {
+                "type": "application",
+                "level": "debug",
+                "jsonify": true,
+                "showLevel": true,
+                "showTimestamp": true
+            },
+            {
+                "type": "access",
+                "level": "debug",
+                "jsonify": false,
+                "showLevel": false,
+                "showTimestamp": false
+            }
+        ]
+    },
+
+    "smtp": {
+        "host": "xxx.com",
+        "port": 25
+    },
+    "emailAlert": {
+        "from": "error@xxx.com",
+        "to": [ "farisrk@yahoo.com" ]
+    },
+    "http": [
+        {
+            "name": "imgServer_development",
+            "host": "xxx.com",
+            "port": 9000
+        },
+        {
+            "name": "imgServer_production",
+            "host": "xxx.com",
+            "port": 9000
+        }
+    ],
+    "beanstalk": [
+    ],
+    "redis": [
+    ],
+    "mongo": [
+        {
+            "name": "bbw_development",
+            "host": "xxx.com",
+            "port": 27017,
+            "database": "PlowtownStandAlone",
+            "collections": [
+                "Emotes",
+                "ItemOverrides"
+            ]
+        },
+        {
+            "name": "bbw_production",
+            "host": "xxx.com",
+            "port": 27017,
+            "database": "Plowtown",
+            "collections": [
+                "Emotes",
+                "ItemOverrides"
+            ]
+        },
+        {
+            "name": "bbw_zain",
+            "host": "xxx.com",
+            "port": 27017,
+            "database": "Plowtown",
+            "collections": [
+                "Emotes",
+                "ItemOverrides"
+            ]
+        }
+    ],
+    "mysql": [
+        {
+            "name": "bbwItem_development",
+            "host": "xxx.com",
+            "user": "xxx",
+            "pwd": "xxx",
+            "database": "plowtown"
+        }
+    ]
+}

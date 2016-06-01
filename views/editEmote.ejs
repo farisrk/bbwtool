@@ -1,0 +1,142 @@
+<%
+    var src = "http://fk-server.airg.us:9000/emotes/"+key+"/50/50/";
+    if (!animated) {
+        src += "png";
+    } else {
+        src += "gif?animated=1&original=1"
+    }
+%>
+
+<form id="emoteForm" enctype="multipart/form-data">
+    <div class="form-group row">
+        <label class="form-control-label col-sm-2">Unique Key</label>
+        <div class="col-sm-8">
+            <input type="text" class="form-control" id="key" value="<%= key %>" disabled>
+            <small id="keyHelp" class="form-control-label">Emote id/filename and item stringkey/icon, alpha-numeric with no spaces</small>
+        </div>    
+    </div>
+    <div class="form-group row">
+        <label class="form-control-label col-sm-2" for="alias">Emote alias</label>
+        <div class="col-sm-8">
+            <input type="text" class="form-control" id="alias" value="<%= alias %>" required>
+            <small id="aliasHelp" class="form-control-label">Emote key map</small>
+            <small id="aliasErr" class="form-control-label"></small>
+        </div>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-2">Options</label>
+        <div class="col-sm-8">
+            <div class="checkbox">
+                <label class="checkbox-inline">
+                    <input id="animated" type="checkbox" value="animated" <% if (animated) { %>checked<% } %>>
+                    Animated
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="form-group row">
+        <label class="form-control-label col-sm-2" for="emoteImg">Emote Image</label>
+        <div class="col-sm-8">
+            <input type="file" class="form-control-file" id="emoteImg">
+            <img id="emoteImgPreview" src="<%= src %>" width="50px">
+            <small id="emoteImgErr" class="form-control-label"></small>
+        </div>
+    </div>
+
+    <button type="input" class="btn btn-primary-outline">Submit</button>
+    <button type="input" class="cancelEmote btn btn-secondary">Cancel</button>
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        var changeSet = {};
+        $('input').change(function() {
+            var id = $(this).prop('id');
+            changeSet[id] = true;
+            $('#'+id+'Err').prop('hidden', true);
+            $(this).parent().parent().removeClass('has-danger');
+        });
+        $('#emoteImg').change(function() {
+            readURL(this, $('#emoteImgPreview'));
+        });
+
+        $("#emoteForm").submit(function() {
+            $("#emoteForm>div.has-danger").removeClass("has-danger");
+            $("#emoteForm>small").prop('hidden', true);
+            uploadNow();
+
+            return false;
+        });
+        $(".cancelEmote").click(function(e) {
+            // cancel default behavior
+            e.preventDefault();
+
+            $('.body').load('/1/emotes');
+            return false;
+        });
+
+        function readURL(input, target) {
+            if (input.files && input.files[0]) {
+                // var emoteFilename = input.files[0].name.replace(/.[\w]{3}$/, '');
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    target.attr('src', e.target.result).prop('hidden', false);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        function uploadNow() {
+            var key = $('#key').val();
+            // build the form data
+            var formData = new FormData();
+            for(var k in changeSet) {
+                var v;
+                var elem = $('#'+k)[0];
+                if (elem.type == 'text') {
+                    v = elem.value;
+                } else if (elem.type == 'checkbox') {
+                    v = elem.checked;
+                } else if (elem.type == 'file') {
+                    v = elem.files[0];
+                }
+                formData.append(k, v);                
+            }
+
+            $.ajax({
+                method:'PUT',
+                url: '/1/emotes/'+key,
+                data: formData,
+                success: function(result, status, xhr) {
+                    $('.body').load('/1/emotes');
+                    $('.alert').removeClass('alert-danger').addClass('alert-success').html('<strong>Emote updated</strong>').prop('hidden', false);
+                    setTimeout(function() {
+//                        $('.alert').animate({
+//                            height: 'hide'
+//                        });
+                        $('.alert').prop('hidden', true);
+                    }, 3000);                    
+                },
+                error: function(xhr, status, error) {
+                    $('.alert').removeClass('alert-success').addClass('alert-danger').html('<strong>Please fix following errors</strong>').prop('hidden', false);
+
+                    var code = xhr.status;
+                    if (code == 500) {
+                        $('.modal-body').html(xhr.responseText);
+                        $('#errModal').modal();
+                    } else {
+                        var response = xhr.responseJSON;
+                        for (var key in response) {
+                            $('#'+key).parent().parent().addClass('has-danger');
+                            if (typeof response[key] != 'boolean')
+                                $('#'+key+'Err').html(response[key]).prop('hidden', false);
+                        }
+                    }
+                },
+                contentType: false,
+                processData: false,
+                dataType: 'json'
+            });
+        }
+    });
+</script>

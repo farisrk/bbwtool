@@ -1,0 +1,84 @@
+<ul class="list-group">
+    <% for (var key in data) {
+        var id = data[key]['_id'];
+        var alias = data[key]['alias'];
+        var type = data[key]['type'];
+        var anim = data[key]['animated'];
+        var src = "http://fk-server.airg.us:9000/emotes/"+id+"/35/35/";
+        if (!anim) {
+            src += "png";
+        } else {
+            src += "gif?animated=1&original=1"
+        }
+    %>
+        <li class="list-group-item" data-id="<%= id %>" data-alias="<%= alias %>" data-type="<%= type %>" data-animated="<%= anim %>">
+
+            <img src="<%= src %>" width="35px"> <%= id %> - <%= alias %>
+            <button type="button" class="btn btn-info btn-sm edit pull-lg-right">Edit</button>
+
+            <div id="env" class="btn-group pull-lg-right" role="group" aria-label="Basic example">
+                <% environments.forEach(function(env) {
+                    var svar = 'off';
+                    var bvar = 'btn-success-outline';
+                    var cvar = 'label-default';
+                    if (data[key][env]) {
+                        svar = 'on';
+                        bvar = 'btn-success';
+                        cvar = 'label-success';
+                    } %>
+                %>
+
+                <button data-environment="<%= env %>" data-state="<%= svar %>" type="button" class="btn <%= bvar %> btn-sm change"><%= env %></button>
+                <% }) %>
+            </div>
+        </li>
+    <% } %>
+</ul>
+
+<!-- {"_id":"goat","type":"default","alias":"(meh)","animated":0,"development":1,"production":1} -->
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('.edit').click(function() {
+            var id = $(this).parent().data('id');
+            $('.body').load('/1/emotes/'+id);
+        });
+
+        $('#env .change').click(function() {
+            var clickedDom = $(this);
+            var parent = $(this).parent().parent();
+            var id = parent.data('id');
+            var env = $(this).data('environment');
+            var method = 'delete';
+            var payload = { environment: env };
+            if ($(this).data('state') == 'off') {
+                method = 'put';
+                payload.alias = parent.data('alias');
+                payload.type = parent.data('type');
+                payload.animated = parent.data('animated');
+            }
+            // alert('clicked on:' + $(this).parent().data('id') + ' action:' + method + ' data:' + JSON.stringify(payload));
+
+            $.ajax({
+                method: method,
+                url: '/1/emotes/' + id,
+                data: payload,
+                success: function(result, status, xhr) {
+                    // alert("Data: " + JSON.stringify(result) + "\nStatus: " + status + "\nXHR: " + xhr);
+                    clickedDom.toggleClass('btn-success-outline').toggleClass('btn-success');
+                    if (method == 'put')
+                        clickedDom.data('state', 'on');
+                    else
+                        clickedDom.data('state', 'off');
+                },
+                error: function(xhr, status, error) {
+                    // alert("xhr: " + JSON.stringify(xhr) + "\nStatus: " + status + "\nerror: " + error);
+                    $('.modal-body').html('<pre>'+xhr.responseJSON.message+'</pre>');
+                    $('#errModal').modal();
+                    // xhr.responseText
+                }
+            });
+        }).mouseup(function() {
+            $(this).blur();
+        });
+    });
+</script>
